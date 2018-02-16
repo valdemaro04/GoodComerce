@@ -24,6 +24,7 @@
                 <th scope="col"><?= $this->Paginator->sort('city') ?></th>
                 <th scope="col"><?= $this->Paginator->sort('state') ?></th>
                 <th scope="col"><?= $this->Paginator->sort('email') ?></th>
+                <th scope="col"><?= $this->Paginator->sort('photo') ?></th>
                 <th scope="col"><?= $this->Paginator->sort('number_phone') ?></th>
                 <th scope="col"><?= $this->Paginator->sort('user_id') ?></th>
                 <th scope="col" class="actions"><?= __('Actions') ?></th>
@@ -39,6 +40,7 @@
                 <td><?= h($profile->city) ?></td>
                 <td><?= h($profile->state) ?></td>
                 <td><?= h($profile->email) ?></td>
+                <td><img src=" <?= h($profile->photo) ?> "></td>
                 <td><?= $this->Number->format($profile->number_phone) ?></td>
                 <td><?= $profile->has('user') ? $this->Html->link($profile->user->id, ['controller' => 'Users', 'action' => 'view', $profile->user->id]) : '' ?></td>
                 <td class="actions">

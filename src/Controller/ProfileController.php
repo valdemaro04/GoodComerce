@@ -24,7 +24,6 @@ class ProfileController extends AppController
             'contain' => ['Users']
         ];
         $profile = $this->paginate($this->Profile);
-
         $this->set(compact('profile'));
     }
 
@@ -72,6 +71,9 @@ class ProfileController extends AppController
      * @return \Cake\Http\Response|null Redirects on successful edit, renders view otherwise.
      * @throws \Cake\Network\Exception\NotFoundException When record not found.
      */
+     function generateRandomString($length = 10) { 
+            return substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"), 0, $length); 
+    } 
     public function edit($id = null)
     {
         $profile = $this->Profile->get($id, [
@@ -79,6 +81,11 @@ class ProfileController extends AppController
         ]);
         if ($this->request->is(['patch', 'post', 'put'])) {
             $profile = $this->Profile->patchEntity($profile, $this->request->getData());
+            $randName = $this->generateRandomString();
+            move_uploaded_file($_FILES['photo']['tmp_name'], WWW_ROOT . "img/users/". $randName . ".png");
+            unlink(WWW_ROOT . $profile->photo);
+            $profile->photo = "img/users/" . $randName . ".png";
+
             if ($this->Profile->save($profile)) {
                 $this->Flash->success(__('The profile has been saved.'));
 

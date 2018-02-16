@@ -91,7 +91,14 @@ class ProfileTable extends Table
             ->add('email', 'unique', ['rule' => 'validateUnique', 'provider' => 'table']);
 
         $validator
+            ->scalar('photo')
+            ->maxLength('photo', 255)
+            ->requirePresence('photo', 'create')
+            ->notEmpty('photo');
+
+        $validator
             ->integer('number_phone')
+            ->requirePresence('number_phone', 'create')
             ->notEmpty('number_phone')
             ->add('number_phone', 'unique', ['rule' => 'validateUnique', 'provider' => 'table']);
 

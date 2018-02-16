@@ -13,6 +13,7 @@ use Cake\ORM\Entity;
  * @property string $city
  * @property string $state
  * @property string $email
+ * @property string $photo
  * @property int $number_phone
  * @property int $user_id
  *
@@ -37,6 +38,7 @@ class Profile extends Entity
         'city' => true,
         'state' => true,
         'email' => true,
+        'photo' => true,
         'number_phone' => true,
         'user_id' => true,
         'user' => true

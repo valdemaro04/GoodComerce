@@ -23,6 +23,7 @@ class UsersController extends AppController
         $users = $this->paginate($this->Users);
 
         $this->set(compact('users'));
+
     }
 
     /**
@@ -46,29 +47,43 @@ class UsersController extends AppController
      *
      * @return \Cake\Http\Response|null Redirects on successful add, renders view otherwise.
      */
+
+   
+
     public function add()
-    {
+    { //Cargando Modelo del perfil
         $this->loadModel('Profile');
+        //Cargando Modelo de la api key
         $this->loadModel('Apikey');
+        //Creando nueva inmstancia en ta tabla api_key
         $apikey = $this->Apikey->newEntity();
+        //Creando nueva inmstancia en ta tabla profile
         $profile = $this->Profile->newEntity();
+        //Creando nueva inmstancia en ta tabla  Users
         $user = $this->Users->newEntity();
+        //Generando api_key
+        
         $hasher  = new DefaultPasswordHasher();
         $api_key_plain = Security::hash(Security::randomBytes(32), 'sha256', false);
         $key = $hasher->hash($api_key_plain);
+
+        
         if ($this->request->is('post')) {
 
             $user = $this->Users->patchEntity($user, $this->request->getData());
 
            $profile = $this->Profile->patchEntity($profile, $this->request->getData()['profile']);
-            debug($this->request->getData());
-
+               
             if ($newUser = $this->Users->save($user)) {
+                
                 $profile->user_id = $newUser->id;
+                $profile->photo = "user.jpg";
+
+                debug($profile); 
                 $this->Profile->save($profile);
                 $apikey->key_api = $key;
                 $apikey->user_id = $newUser->id;
-                debug($apikey);
+                
                 
                 $this->Apikey->save($apikey);
 
@@ -81,6 +96,10 @@ class UsersController extends AppController
             
         }
         $this->set(compact('user', 'profile'));
+    }
+    public function confirmarCuenta($value='')
+    {
+        
     }
 
     public function login()
@@ -108,12 +127,14 @@ class UsersController extends AppController
      * @throws \Cake\Network\Exception\NotFoundException When record not found.
      */
     public function edit($id = null)
-    {
+    {   
         $user = $this->Users->get($id, [
             'contain' => []
         ]);
         if ($this->request->is(['patch', 'post', 'put'])) {
             $user = $this->Users->patchEntity($user, $this->request->getData());
+
+        
             if ($this->Users->save($user)) {
                 $this->Flash->success(__('The user has been saved.'));
 

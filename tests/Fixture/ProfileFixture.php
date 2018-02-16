@@ -31,6 +31,7 @@ class ProfileFixture extends TestFixture
         'city' => ['type' => 'string', 'length' => 255, 'null' => false, 'default' => null, 'collate' => 'utf8_spanish_ci', 'comment' => '', 'precision' => null, 'fixed' => null],
         'state' => ['type' => 'string', 'length' => 255, 'null' => false, 'default' => null, 'collate' => 'utf8_spanish_ci', 'comment' => '', 'precision' => null, 'fixed' => null],
         'email' => ['type' => 'string', 'length' => 255, 'null' => false, 'default' => null, 'collate' => 'utf8_spanish_ci', 'comment' => '', 'precision' => null, 'fixed' => null],
+        'photo' => ['type' => 'string', 'length' => 255, 'null' => false, 'default' => null, 'collate' => 'utf8_spanish_ci', 'comment' => '', 'precision' => null, 'fixed' => null],
         'number_phone' => ['type' => 'integer', 'length' => 11, 'unsigned' => false, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null, 'autoIncrement' => null],
         'user_id' => ['type' => 'integer', 'length' => 11, 'unsigned' => false, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null, 'autoIncrement' => null],
         '_indexes' => [
@@ -63,6 +64,7 @@ class ProfileFixture extends TestFixture
             'city' => 'Lorem ipsum dolor sit amet',
             'state' => 'Lorem ipsum dolor sit amet',
             'email' => 'Lorem ipsum dolor sit amet',
+            'photo' => 'Lorem ipsum dolor sit amet',
             'number_phone' => 1,
             'user_id' => 1
         ],
