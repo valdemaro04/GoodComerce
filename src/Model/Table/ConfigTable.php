@@ -33,6 +33,8 @@ class ConfigTable extends Table
         parent::initialize($config);
 
         $this->setTable('config');
+        $this->setDisplayField('id');
+        $this->setPrimaryKey('id');
 
         $this->belongsTo('Users', [
             'foreignKey' => 'user_id',
@@ -48,6 +50,10 @@ class ConfigTable extends Table
      */
     public function validationDefault(Validator $validator)
     {
+        $validator
+            ->integer('id')
+            ->allowEmpty('id', 'create');
+
         $validator
             ->scalar('url')
             ->maxLength('url', 255)

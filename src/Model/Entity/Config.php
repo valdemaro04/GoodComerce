@@ -6,6 +6,7 @@ use Cake\ORM\Entity;
 /**
  * Config Entity
  *
+ * @property int $id
  * @property string $url
  * @property int $user_id
  *

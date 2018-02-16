@@ -55,6 +55,8 @@ class UsersController extends AppController
         $this->loadModel('Profile');
         //Cargando Modelo de la api key
         $this->loadModel('Apikey');
+        //Cargando Modelo de config
+        $this->loadModel('Config');
         //Creando nueva inmstancia en ta tabla api_key
         $apikey = $this->Apikey->newEntity();
         //Creando nueva inmstancia en ta tabla profile
@@ -62,6 +64,8 @@ class UsersController extends AppController
         //Creando nueva inmstancia en ta tabla  Users
         $user = $this->Users->newEntity();
         //Generando api_key
+        $config = $this->Config->newEntity();
+        //Generando config
         
         $hasher  = new DefaultPasswordHasher();
         $api_key_plain = Security::hash(Security::randomBytes(32), 'sha256', false);
@@ -72,21 +76,24 @@ class UsersController extends AppController
 
             $user = $this->Users->patchEntity($user, $this->request->getData());
 
-           $profile = $this->Profile->patchEntity($profile, $this->request->getData()['profile']);
-               
+            $profile = $this->Profile->patchEntity($profile, $this->request->getData()['profile']);
+            
+            $config = $this->Config->patchEntity($config, $this->request->getData()['config']);
             if ($newUser = $this->Users->save($user)) {
                 
                 $profile->user_id = $newUser->id;
-                $profile->photo = "user.jpg";
+                $profile->photo = "img/user.jpg";
 
                 debug($profile); 
                 $this->Profile->save($profile);
                 $apikey->key_api = $key;
                 $apikey->user_id = $newUser->id;
                 
+                $config->user_id = $newUser->id;
                 
                 $this->Apikey->save($apikey);
 
+                $this->Config->save($config);
                 $this->Flash->success(__('The user has been saved.'));
 
                 //return $this->redirect(['action' => 'index']);

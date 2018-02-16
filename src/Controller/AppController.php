@@ -41,7 +41,10 @@ class AppController extends Controller
     {
         parent::initialize();
 
+
+        
         $this->loadComponent('RequestHandler');
+        $this->loadComponent('WPConnection');
         $this->loadComponent('Flash');
          $this->loadComponent('Auth',[
             'authenticate' => [
