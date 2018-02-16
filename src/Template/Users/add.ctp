@@ -31,6 +31,8 @@
             echo $this->Form->control('profile.email');
             echo $this->Form->control('profile.number_phone');
             echo $this->Form->control('config.url');
+            echo $this->Form->control('config.consumer_key');
+            echo $this->Form->control('config.consumer_secret');
         ?>
     </fieldset>
     <?= $this->Form->button(__('Submit')) ?>

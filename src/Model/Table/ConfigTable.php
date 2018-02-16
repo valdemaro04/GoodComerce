@@ -60,6 +60,16 @@ class ConfigTable extends Table
             ->requirePresence('url', 'create')
             ->notEmpty('url');
 
+        $validator
+            ->scalar('consumer_key')
+            ->requirePresence('consumer_key', 'create')
+            ->notEmpty('consumer_key');
+
+        $validator
+            ->scalar('consumer_secret')
+            ->requirePresence('consumer_secret', 'create')
+            ->notEmpty('consumer_secret');
+
         return $validator;
     }
 

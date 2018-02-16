@@ -8,6 +8,8 @@ use Cake\ORM\Entity;
  *
  * @property int $id
  * @property string $url
+ * @property string $consumer_key
+ * @property string $consumer_secret
  * @property int $user_id
  *
  * @property \App\Model\Entity\User $user
@@ -26,6 +28,8 @@ class Config extends Entity
      */
     protected $_accessible = [
         'url' => true,
+        'consumer_key' => true,
+        'consumer_secret' => true,
         'user_id' => true,
         'user' => true
     ];

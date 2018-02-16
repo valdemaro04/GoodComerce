@@ -6,6 +6,7 @@ use Cake\Controller\ComponentRegistry;
 use Cake\Http\Client;
 use Cake\ORM\TableRegistry;
 use Cake\Event\Event;
+use Automattic\WooCommerce\Client as WooClient;
 
 /**
  * WPConnection component
@@ -45,7 +46,7 @@ class WPConnectionComponent extends Component
 
 
 
-        if ($this->requestData['apikey']) {
+        if (isset($this->requestData['apikey'])) {
             $this->key = $this->requestData['apikey'];
         } else {
             return;
@@ -67,15 +68,32 @@ class WPConnectionComponent extends Component
             ])->first();
 
 
-            if (property_exists($this, "Config")) {
+            if ($this->Config != NULL && $this->ApiInstance != NULL) {
                 //URL configurada por el usuario de su WordPress
                 $wp_url = $this->Config->url;
 
                 //Links del API de WordPress
                 $this->WPLinks = [
                     'main' => $wp_url,
-                    'auth' => $wp_url . "/jwt-auth/v1/token"
+                    'auth' => $wp_url . "/wp-json/jwt-auth/v1/token",
+                    'products.get' => $wp_url . "/wp-json/wc/v2/products"
                 ];
+
+                $this->WooData = [
+                    'consumer_key' => $this->Config->consumer_key,
+                    'consumer_secret' => $this->Config->consumer_secret
+                ];
+
+                $this->WooClient = new WooClient(
+                    $this->WPLinks['main'], 
+                    $this->WooData['consumer_key'], 
+                    $this->WooData['consumer_secret'],
+                    [
+                        'wp_api' => true,
+                        'version' => 'wc/v2',
+                    ]
+                );
+
             } else {
                 $this->invalid_request = false;
             }
@@ -109,10 +127,52 @@ class WPConnectionComponent extends Component
             'timeout' => 120
         ]);
 
-        debug($response);
+        
+        return $response;
         
 
 
         
+    }
+
+    public function getProducts() {
+        
+
+        if (property_exists($this, "invalid_request")) {
+            return false;
+        }
+
+        if (!$this->requestData('apikey')) return false;
+
+
+        $response = $this->WooClient->get("products");
+
+        
+
+        return $response;
+    }
+
+    public function sendOrder($order) {
+        if (property_exists($this, "invalid_request")) {
+            return false;
+        }
+
+        if (!$this->requestData('apikey')) return false;
+
+        $response = $this->WooClient->post('orders', $order);
+
+        return $response;
+    }
+
+    public function getPaymentGateways() {
+        if (property_exists($this, "invalid_request")) {
+            return false;
+        }
+
+        if (!$this->requestData('apikey')) return false;
+
+        $response = $this->WooClient->get('payment_gateways');
+
+        return $response;
     }
 }
