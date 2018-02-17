@@ -33,7 +33,7 @@ class ApiController extends AppController
             } else {
                 $message = "No identificado";
             }
-    
+            
             $this->set([
                 'message' => $message,
                 'type' => 'single',
@@ -42,7 +42,8 @@ class ApiController extends AppController
                     'user_data' => [
                         'email' => $result->json['user_email'],
                         'username' => $result->json['user_nicename']
-                    ]
+                    ],
+                    'customer' => $result->customer
                 ],
                 'fields' => [
                     [
@@ -119,9 +120,6 @@ class ApiController extends AppController
 
     public function paymentgateways() {
         if ($this->request->is('post')) {
-
-            
-            
             $gateways = $this->WPConnection->getPaymentGateways();
             $gateways = array_filter($gateways, [$this, 'filterGateways']);
             $this->set([
@@ -131,11 +129,48 @@ class ApiController extends AppController
         }
     }
 
+    public function register() {
+        if ($this->request->is('post')) {
+            $data = $this->WPConnection->register();
+            /*if (!$data) {
+                $this->set([
+                    'message' => 'invalid request',
+                    'customer' => $data['customer'],
+                    'response' => $data['response'],
+                    '_serialize' => ['message', 'customer']
+                ]);
+            } else {
+                $this->set([
+                    'customer' => $customer,
+                    '_serialize' => ['customer']
+                ]);
+            }*/
+
+            $this->set([
+                'message' => 'debug',
+                'customer' => $data['customer'],
+                '_serialize' => ['message', 'customer']
+            ]);
+
+            
+        }
+    }
+
+    public function updatecustomer() {
+        if($this->request->is('post')) {
+            $this->set([
+                'result' => $this->WPConnection->updatecustomer(),
+                '_serialize' => ['result']
+            ]);
+        }
+    }
+
+
 
     public function beforeFilter(Event $event) {
         parent::beforeFilter($event);
 
-        $this->Auth->allow(['authorize', 'products', 'sendorder', 'paymentgateways']);
+        $this->Auth->allow(['authorize', 'products', 'sendorder', 'paymentgateways', 'register', 'updatecustomer']);
     }
 
 

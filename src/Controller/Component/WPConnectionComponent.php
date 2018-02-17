@@ -43,7 +43,7 @@ class WPConnectionComponent extends Component
         //Configuramos los objetos y modelos que se van a utilizar.
         $this->ConfigModel = TableRegistry::get('Config');
         $this->ApiModel = TableRegistry::get('Apikey');
-
+        $this->CustomersModel = TableRegistry::get('Customers');
 
 
         if (isset($this->requestData['apikey'])) {
@@ -108,6 +108,28 @@ class WPConnectionComponent extends Component
 
     
     
+    public function getCustomer($id) {
+        $customer = $this->WooClient->get("customers/$id");
+        return $customer;
+    }
+    
+    public function updateCustomer() {
+        if (property_exists($this, "invalid_request")) {
+            return false;
+        }
+
+        //Verificacion de campos
+        if (!$this->requestData('username') || !$this->requestData('password') && !$this->requestData('consumer_data')) return false;
+    
+        $user = $this->identify();
+        $data = $this->requestData('consumer_data');
+        if ($user->json['user_token']) {
+            $this->WooClient->put("customers/".$user->customer->id, $data);
+            return true;
+        } else {
+            return false;
+        }
+    }
 
     public function identify() {
         
@@ -127,6 +149,16 @@ class WPConnectionComponent extends Component
             'timeout' => 120
         ]);
 
+        $customer = $this->CustomersModel->find('all', [
+            'conditions' => ['username' => $this->requestData('username')]
+        ])->first();
+
+        
+        
+        
+        
+
+        $response->customer = $this->getCustomer($customer->customer);
         
         return $response;
         
@@ -162,6 +194,39 @@ class WPConnectionComponent extends Component
         $response = $this->WooClient->post('orders', $order);
 
         return $response;
+    }
+
+    public function getCategories() {
+        if (property_exists($this, "invalid_request")) {
+            return false;
+        }
+
+        if (!$this->requestData('apikey')) return false;
+
+        $response = $this->WooClient->post('products/categories');
+
+        return $response;
+    }
+
+    public function register() {
+        if (property_exists($this, "invalid_request")) {
+            return false;
+        }
+
+        if (!$this->requestData('apikey') && !$this->requestData('customer_data')) return false;
+
+        $response = $this->WooClient->post('customers', $this->requestData('customer_data'));
+
+        $customer = $this->CustomersModel->newEntity();
+
+        $customer->username = $response->username;
+
+        $customer->customer = $response->id;
+
+        $customer = $this->CustomersModel->save($customer);
+
+        return ['customer' => $customer, 'response' => $response];
+
     }
 
     public function getPaymentGateways() {
