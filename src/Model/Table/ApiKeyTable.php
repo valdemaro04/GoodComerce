@@ -55,10 +55,15 @@ class ApiKeyTable extends Table
             ->allowEmpty('id', 'create');
 
         $validator
-            ->scalar('key')
-            ->maxLength('key', 255)
-            ->requirePresence('key', 'create')
-            ->notEmpty('key');
+            ->scalar('key_api')
+            ->maxLength('key_api', 255)
+            ->requirePresence('key_api', 'create')
+            ->notEmpty('key_api');
+
+        $validator
+            ->scalar('status')
+            ->requirePresence('status', 'create')
+            ->notEmpty('status');
 
         return $validator;
     }

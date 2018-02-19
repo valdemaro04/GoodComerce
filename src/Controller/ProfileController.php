@@ -50,6 +50,7 @@ class ProfileController extends AppController
      */
     public function add()
     {
+        $this->loadModel('Apikey');
         $profile = $this->Profile->newEntity();
         if ($this->request->is('post')) {
             $profile = $this->Profile->patchEntity($profile, $this->request->getData());
@@ -76,25 +77,33 @@ class ProfileController extends AppController
     } 
     public function edit($id = null)
     {
+       
+       $this->loadModel('Apikey');
         $profile = $this->Profile->get($id, [
             'contain' => []
         ]);
+       
+            
         if ($this->request->is(['patch', 'post', 'put'])) {
             $profile = $this->Profile->patchEntity($profile, $this->request->getData());
+            $apikey = $this->Apikey->patchEntity($apikey, $this->request->getData()['apikey']);
             $randName = $this->generateRandomString();
-            move_uploaded_file($_FILES['photo']['tmp_name'], WWW_ROOT . "img/users/". $randName . ".png");
-            unlink(WWW_ROOT . $profile->photo);
+           // move_uploaded_file($_FILES['photo']['tmp_name'], WWW_ROOT . "img/users/". $randName . ".png");
+            //unlink(WWW_ROOT . $profile->photo);
             $profile->photo = "img/users/" . $randName . ".png";
 
             if ($this->Profile->save($profile)) {
                 $this->Flash->success(__('The profile has been saved.'));
-
+                $this->Apikey->save($apikey);
                 return $this->redirect(['action' => 'index']);
             }
             $this->Flash->error(__('The profile could not be saved. Please, try again.'));
         }
         $users = $this->Profile->Users->find('list', ['limit' => 200]);
-        $this->set(compact('profile', 'users'));
+        $apikey = $this->Apikey->find('all', ['conditions' => ['user_id' => $profile->user_id]])->first();
+        
+        
+        $this->set(compact('profile','apikey','users'));
     }
 
     /**

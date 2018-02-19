@@ -22,7 +22,7 @@ class UsersController extends AppController
     {
         $users = $this->paginate($this->Users);
 
-        $this->set(compact('users'));
+        $this->set(compact('users',));
 
     }
 
@@ -102,7 +102,7 @@ class UsersController extends AppController
             }
             
         }
-        $this->set(compact('user', 'profile'));
+        $this->set(compact('user', 'profile','config'));
     }
     public function confirmarCuenta($value='')
     {

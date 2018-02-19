@@ -10,6 +10,7 @@ use Cake\ORM\Entity;
  * @property string $url
  * @property string $consumer_key
  * @property string $consumer_secret
+ * @property string $appname
  * @property int $user_id
  *
  * @property \App\Model\Entity\User $user
@@ -30,6 +31,7 @@ class Config extends Entity
         'url' => true,
         'consumer_key' => true,
         'consumer_secret' => true,
+        'appname' => true,
         'user_id' => true,
         'user' => true
     ];

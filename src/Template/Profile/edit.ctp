@@ -19,7 +19,7 @@
     </ul>
 </nav>
 <div class="profile form large-9 medium-8 columns content">
-    <?= $this->Form->create($profile, ['enctype' => 'multipart/form-data']) ?>
+    <?= $this->Form->create($profile) ?>
     <fieldset>
         <legend><?= __('Edit Profile') ?></legend>
         <?php
@@ -29,12 +29,12 @@
             echo $this->Form->control('city');
             echo $this->Form->control('state');
             echo $this->Form->control('email');
-            
-            echo $this->Form->control('photo', ['type' => 'file', 'hidden' => true, 'id' => 'photo']);
-            echo '<br/>';
-            
+            echo $this->Form->control('photo');
             echo $this->Form->control('number_phone');
+            debug($apikey->status);
+            echo $this->Form->select('apikey.status');
             echo $this->Form->control('user_id', ['options' => $users]);
+           
         ?>
     </fieldset>
     <?= $this->Form->button(__('Submit')) ?>

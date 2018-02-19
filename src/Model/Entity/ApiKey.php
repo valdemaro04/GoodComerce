@@ -7,7 +7,8 @@ use Cake\ORM\Entity;
  * ApiKey Entity
  *
  * @property int $id
- * @property string $key
+ * @property string $key_api
+ * @property string $status
  * @property int $user_id
  *
  * @property \App\Model\Entity\User $user
@@ -25,7 +26,8 @@ class ApiKey extends Entity
      * @var array
      */
     protected $_accessible = [
-        'key' => true,
+        'key_api' => true,
+        'status' => true,
         'user_id' => true,
         'user' => true
     ];

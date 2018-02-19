@@ -158,9 +158,20 @@ class ApiController extends AppController
 
     public function updatecustomer() {
         if($this->request->is('post')) {
+            $r = $this->WPConnection->updateCustomer();
             $this->set([
-                'result' => $this->WPConnection->updatecustomer(),
+                'result' => $r,
                 '_serialize' => ['result']
+            ]);
+        }
+    }
+
+    public function appdata() {
+        if ($this->request->is('post')) {
+            $appdata = $this->WPConnection->appdata();
+            $this->set([
+                'config' => $appdata,
+                '_serialize' => ['config']
             ]);
         }
     }
@@ -170,7 +181,7 @@ class ApiController extends AppController
     public function beforeFilter(Event $event) {
         parent::beforeFilter($event);
 
-        $this->Auth->allow(['authorize', 'products', 'sendorder', 'paymentgateways', 'register', 'updatecustomer']);
+        $this->Auth->allow(['authorize', 'products', 'sendorder', 'paymentgateways', 'register', 'updatecustomer', 'appdata']);
     }
 
 

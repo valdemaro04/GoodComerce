@@ -70,6 +70,11 @@ class ConfigTable extends Table
             ->requirePresence('consumer_secret', 'create')
             ->notEmpty('consumer_secret');
 
+        $validator
+            ->scalar('appname')
+            ->requirePresence('appname', 'create')
+            ->notEmpty('appname');
+
         return $validator;
     }
 

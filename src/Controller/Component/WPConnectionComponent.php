@@ -20,17 +20,11 @@ class WPConnectionComponent extends Component
      * @var array
      */
     protected $_defaultConfig = [];
-    
-
-
+ 
     function requestData($data) {
         if (isset($this->requestData[$data])) return $this->requestData[$data];
         return false;
     }
-
-
-
-    
 
     public function startup(Event $event) {
         
@@ -94,20 +88,19 @@ class WPConnectionComponent extends Component
                     ]
                 );
 
+                $this->WooConfig = [
+                    'appname' => $this->Config->appname
+                ];
+
+
             } else {
                 $this->invalid_request = false;
-            }
-
-            
-            
+            } 
 
         }
         
-
     }
 
-    
-    
     public function getCustomer($id) {
         $customer = $this->WooClient->get("customers/$id");
         return $customer;
@@ -119,13 +112,13 @@ class WPConnectionComponent extends Component
         }
 
         //Verificacion de campos
-        if (!$this->requestData('username') || !$this->requestData('password') && !$this->requestData('consumer_data')) return false;
+        if (!$this->requestData('username') || !$this->requestData('password') && !$this->requestData('customer_data')) return false;
     
         $user = $this->identify();
-        $data = $this->requestData('consumer_data');
-        if ($user->json['user_token']) {
-            $this->WooClient->put("customers/".$user->customer->id, $data);
-            return true;
+        $data = $this->requestData('customer_data');
+        if ($user->json['token']) {
+            $r = $this->WooClient->put("customers/".$user->customer->id, $data);
+            return $r;
         } else {
             return false;
         }
@@ -153,18 +146,12 @@ class WPConnectionComponent extends Component
             'conditions' => ['username' => $this->requestData('username')]
         ])->first();
 
-        
-        
-        
-        
-
+ 
         $response->customer = $this->getCustomer($customer->customer);
         
         return $response;
         
 
-
-        
     }
 
     public function getProducts() {
@@ -239,5 +226,16 @@ class WPConnectionComponent extends Component
         $response = $this->WooClient->get('payment_gateways');
 
         return $response;
+    }
+
+    public function appdata() {
+        if (property_exists($this, "invalid_request")) {
+            return false;
+        }
+
+        if (!$this->requestData('apikey')) return false;
+
+        return $this->WooConfig;
+
     }
 }
