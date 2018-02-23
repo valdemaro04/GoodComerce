@@ -11,8 +11,12 @@ use Cake\ORM\Entity;
  * @property string $consumer_key
  * @property string $consumer_secret
  * @property string $appname
+ * @property string $paypal_client_id
+ * @property string $paypal_secret
+ * @property string $paypal_email
  * @property int $user_id
  *
+ * @property \App\Model\Entity\PaypalClient $paypal_client
  * @property \App\Model\Entity\User $user
  */
 class Config extends Entity
@@ -32,7 +36,11 @@ class Config extends Entity
         'consumer_key' => true,
         'consumer_secret' => true,
         'appname' => true,
+        'paypal_client_id' => true,
+        'paypal_secret' => true,
+        'paypal_email' => true,
         'user_id' => true,
+        'paypal_client' => true,
         'user' => true
     ];
 }

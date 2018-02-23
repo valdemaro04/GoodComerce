@@ -38,7 +38,7 @@ class WPConnectionComponent extends Component
         $this->ConfigModel = TableRegistry::get('Config');
         $this->ApiModel = TableRegistry::get('Apikey');
         $this->CustomersModel = TableRegistry::get('Customers');
-
+        $this->PaymentsModel = TableRegistry::get('Payments');
 
         if (isset($this->requestData['apikey'])) {
             $this->key = $this->requestData['apikey'];
@@ -78,6 +78,14 @@ class WPConnectionComponent extends Component
                     'consumer_secret' => $this->Config->consumer_secret
                 ];
 
+                $this->PaymentData = [
+                        'paypal' => [
+                            'ClientID' => $this->Config->paypal_client_id,
+                            'ClientSecret' => $this->Config->paypal_secret,
+                            'ReceiverEmail' => $this->Config->paypal_email
+                        ]
+                    ];
+
                 $this->WooClient = new WooClient(
                     $this->WPLinks['main'], 
                     $this->WooData['consumer_key'], 
@@ -88,11 +96,19 @@ class WPConnectionComponent extends Component
                     ]
                 );
 
+                $this->PayPalContext = new \PayPal\Rest\ApiContext(
+                        new \PayPal\Auth\OAuthTokenCredential(
+                            $this->PaymentData['paypal']['ClientID'],     // ClientID
+                            $this->PaymentData['paypal']['ClientSecret']      // ClientSecret
+                        )
+                );
+
+
                 $this->WooConfig = [
-                    'appname' => $this->Config->appname
+                    'appname' => $this->Config->appname,
+                    'paypal_client_id' => $this->PaymentData['paypal']['ClientID']
                 ];
-
-
+                
             } else {
                 $this->invalid_request = false;
             } 
@@ -171,6 +187,18 @@ class WPConnectionComponent extends Component
         return $response;
     }
 
+    public function getProduct($id) {
+        if (property_exists($this, "invalid_request")) {
+            return false;
+        }
+
+        if (!$this->requestData('apikey')) return false;
+
+        $response = $this->WooClient->get("products/$id");
+
+        return $response;
+    }
+
     public function sendOrder($order) {
         if (property_exists($this, "invalid_request")) {
             return false;
@@ -179,6 +207,18 @@ class WPConnectionComponent extends Component
         if (!$this->requestData('apikey')) return false;
 
         $response = $this->WooClient->post('orders', $order);
+
+        return $response;
+    }
+
+    public function getOrder($id) {
+        if (property_exists($this, "invalid_request")) {
+            return false;
+        }
+
+        if (!$this->requestData('apikey')) return false;
+
+        $response = $this->WooClient->get("orders/$id");
 
         return $response;
     }
@@ -238,4 +278,54 @@ class WPConnectionComponent extends Component
         return $this->WooConfig;
 
     }
+
+
+
+
+    /**
+     * 
+     * PAYMENTS
+     * 
+     */
+
+    public function createPayment() {
+        if (property_exists($this, "invalid_request")) {
+            return false;
+        }
+
+        if (!$this->requestData('apikey') || !$this->requestData('order_id')) return false;
+
+
+    }
+
+
+    public function verifyPaypalPayment() {
+        if (property_exists($this, "invalid_request")) {
+            return false;
+        }
+
+        if (!$this->requestData('apikey') || !$this->requestData('paypal_email') || !$this->requestData('order_id') || $this->requestData('total')) return false;
+
+        $order = $this->getOrder($this->requestData('order_id'));
+
+        if ($order) {
+            $payment = $this->PaymentsModel->find('all', [
+                'conditions' => [
+                    'payer_email' => $this->requestData('paypal_email'),
+                    'total' => $this->requestData('total'),
+                    'receiver_email' => $this->PaymentData['paypal']['ReceiverEmail']
+                ]
+            ])->first();
+
+            if ($payment) {
+                $total = $payment->total;
+                $this->PaymentsModel->delete($payment);
+                return $total;
+            } else {
+                return false;
+            }
+        }
+
+    }
+
 }

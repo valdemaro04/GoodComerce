@@ -3,7 +3,7 @@ namespace App\Controller;
 
 use App\Controller\AppController;
 use Cake\Event\Event;
-
+use App\Utility\PaypalIPN;
 /**
  * Api Controller
  *
@@ -176,12 +176,53 @@ class ApiController extends AppController
         }
     }
 
+    public function ipn() {
+        $this->viewBuilder()->setLayout(false);
+        $this->loadModel('Payments');
+        if ($this->request->is('post')) {
+            $ipn = new PaypalIPN();
+            $verified = $ipn->verifyIPN();
+            if ($verified) {
+               $n = $this->Payments->newEntity();
+               $n->payer_email = $verified['payer_email'];
+               $n->receiver_email = $verified['receiver_email'];
+               $n->total = $verified['mc_gross'];
+               $this->Payments->save($n);
+               $this->set([
+                'ipn' => $verified,
+                '_serialize' => ['ipn']
+                ]);
+            } else {
+                $this->set([
+                    'ipn' => "SPOOFED_IPN",
+                    '_serialize' => ['ipn']
+                    ]);
+            }
+
+            
+        }
+    }
+
+    public function verifypaypal() {
+        if ($this->request->is('post')) {
+            if($k = $this->WPConnection->verifyPaypalPayment()) {
+                $this->set([
+                    'result' => $k,
+                    '_serialize' => ['result']
+                ]);
+            } else {
+                $this->set([
+                    'result' => 'error',
+                    '_serialize' => ['result']
+                ]);
+            }
+        }
+    }
 
 
     public function beforeFilter(Event $event) {
         parent::beforeFilter($event);
-
-        $this->Auth->allow(['authorize', 'products', 'sendorder', 'paymentgateways', 'register', 'updatecustomer', 'appdata']);
+        $this->Auth->allow(['verifypaypal', 'ipn','authorize', 'products', 'sendorder', 'paymentgateways', 'register', 'updatecustomer', 'appdata']);
     }
 
 

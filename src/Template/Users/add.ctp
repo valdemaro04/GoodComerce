@@ -34,6 +34,9 @@
             echo $this->Form->control('config.appname');
             echo $this->Form->control('config.consumer_key');
             echo $this->Form->control('config.consumer_secret');
+            echo $this->Form->control('config.paypal_client_id');
+            echo $this->Form->control('config.paypal_secret');
+            echo $this->Form->control('config.paypal_email');
         ?>
     </fieldset>
     <?= $this->Form->button(__('Submit')) ?>

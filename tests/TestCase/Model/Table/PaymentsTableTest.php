@@ -1,22 +1,22 @@
 <?php
 namespace App\Test\TestCase\Model\Table;
 
-use App\Model\Table\ConfigTable;
+use App\Model\Table\PaymentsTable;
 use Cake\ORM\TableRegistry;
 use Cake\TestSuite\TestCase;
 
 /**
- * App\Model\Table\ConfigTable Test Case
+ * App\Model\Table\PaymentsTable Test Case
  */
-class ConfigTableTest extends TestCase
+class PaymentsTableTest extends TestCase
 {
 
     /**
      * Test subject
      *
-     * @var \App\Model\Table\ConfigTable
+     * @var \App\Model\Table\PaymentsTable
      */
-    public $Config;
+    public $Payments;
 
     /**
      * Fixtures
@@ -24,10 +24,7 @@ class ConfigTableTest extends TestCase
      * @var array
      */
     public $fixtures = [
-        'app.config',
-        'app.paypal_clients',
-        'app.users',
-        'app.profile'
+        'app.payments'
     ];
 
     /**
@@ -38,8 +35,8 @@ class ConfigTableTest extends TestCase
     public function setUp()
     {
         parent::setUp();
-        $config = TableRegistry::exists('Config') ? [] : ['className' => ConfigTable::class];
-        $this->Config = TableRegistry::get('Config', $config);
+        $config = TableRegistry::exists('Payments') ? [] : ['className' => PaymentsTable::class];
+        $this->Payments = TableRegistry::get('Payments', $config);
     }
 
     /**
@@ -49,7 +46,7 @@ class ConfigTableTest extends TestCase
      */
     public function tearDown()
     {
-        unset($this->Config);
+        unset($this->Payments);
 
         parent::tearDown();
     }
@@ -70,16 +67,6 @@ class ConfigTableTest extends TestCase
      * @return void
      */
     public function testValidationDefault()
-    {
-        $this->markTestIncomplete('Not implemented yet.');
-    }
-
-    /**
-     * Test buildRules method
-     *
-     * @return void
-     */
-    public function testBuildRules()
     {
         $this->markTestIncomplete('Not implemented yet.');
     }

@@ -9,6 +9,7 @@ use Cake\Validation\Validator;
 /**
  * Config Model
  *
+ * @property \App\Model\Table\PaypalClientsTable|\Cake\ORM\Association\BelongsTo $PaypalClients
  * @property \App\Model\Table\UsersTable|\Cake\ORM\Association\BelongsTo $Users
  *
  * @method \App\Model\Entity\Config get($primaryKey, $options = [])
@@ -36,6 +37,10 @@ class ConfigTable extends Table
         $this->setDisplayField('id');
         $this->setPrimaryKey('id');
 
+        $this->belongsTo('PaypalClients', [
+            'foreignKey' => 'paypal_client_id',
+            'joinType' => 'INNER'
+        ]);
         $this->belongsTo('Users', [
             'foreignKey' => 'user_id',
             'joinType' => 'INNER'
@@ -75,6 +80,16 @@ class ConfigTable extends Table
             ->requirePresence('appname', 'create')
             ->notEmpty('appname');
 
+        $validator
+            ->scalar('paypal_secret')
+            ->requirePresence('paypal_secret', 'create')
+            ->notEmpty('paypal_secret');
+
+        $validator
+            ->scalar('paypal_email')
+            ->requirePresence('paypal_email', 'create')
+            ->notEmpty('paypal_email');
+
         return $validator;
     }
 
@@ -87,6 +102,7 @@ class ConfigTable extends Table
      */
     public function buildRules(RulesChecker $rules)
     {
+        $rules->add($rules->existsIn(['paypal_client_id'], 'PaypalClients'));
         $rules->add($rules->existsIn(['user_id'], 'Users'));
 
         return $rules;
