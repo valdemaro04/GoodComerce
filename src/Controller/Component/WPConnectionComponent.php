@@ -159,7 +159,10 @@ class WPConnectionComponent extends Component
         ]);
 
         $customer = $this->CustomersModel->find('all', [
-            'conditions' => ['username' => $this->requestData('username')]
+            'conditions' => [
+                'username' => $this->requestData('username'),
+                'apikey' => $this->requestData('apikey')
+                ]
         ])->first();
 
  
@@ -250,6 +253,8 @@ class WPConnectionComponent extends Component
 
         $customer->customer = $response->id;
 
+        $customer->apikey = $this->requestData('apikey');
+        
         $customer = $this->CustomersModel->save($customer);
 
         return ['customer' => $customer, 'response' => $response];

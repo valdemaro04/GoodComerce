@@ -219,7 +219,6 @@ class ApiController extends AppController
         }
     }
 
-
     public function beforeFilter(Event $event) {
         parent::beforeFilter($event);
         $this->Auth->allow(['verifypaypal', 'ipn','authorize', 'products', 'sendorder', 'paymentgateways', 'register', 'updatecustomer', 'appdata']);
