@@ -103,14 +103,48 @@ class ApiController extends AppController
         if ($this->request->is('post')) {
             
 
+
             $data = $this->request->getData();
 
-            $orderSend = $this->WPConnection->sendOrder($data);
 
-            $this->set([
-                'result' => $orderSend,
-                '_serialize' => ['result']
-            ]);
+            $customer = $data['customer'];
+            $cart = $data['cart'];
+
+
+            if (array_key_exists('customer_id', $data['customer'])) {
+                $order = [
+                    'payment_method' => $this->data['payment_method'],
+                    'set_paid' => false,
+                    'customer_id' => $data['customer']['customer_id'],
+                    'billing' => $data['customer']['billing'],
+                    'shipping' => $data['customer']['shipping'],
+                    'line_items' => $cart
+                ];
+            } else {
+                $order = [
+                    'payment_method' => $this->data['payment_method'],
+                    'set_paid' => false,
+                    'billing' => $data['customer']['billing'],
+                    'shipping' => $data['customer']['shipping'],
+                    'line_items' => $cart
+                ];
+            }
+            
+
+            $orderSend = $this->WPConnection->sendOrder($order);
+
+            if ($orderSend) {
+                $this->set([
+                    'result' => $orderSend,
+                    '_serialize' => ['result']
+                ]);
+            } else {
+                $this->set([
+                    'result' => false,
+                    '_serialize' => ['result']
+                ]);
+            }
+            
         }
     }
 
@@ -200,6 +234,11 @@ class ApiController extends AppController
             }
 
             
+        } else {
+            $this->set([
+                'ipn' => "URE_NOT_IPN",
+                '_serialize' => ['ipn']
+            ]);
         }
     }
 
@@ -207,15 +246,25 @@ class ApiController extends AppController
         if ($this->request->is('post')) {
             if($k = $this->WPConnection->verifyPaypalPayment()) {
                 $this->set([
-                    'result' => $k,
+                    'result' => [$k, true],
                     '_serialize' => ['result']
                 ]);
             } else {
                 $this->set([
-                    'result' => 'error',
+                    'result' => [false, 'FALSE', $this->request->getData()],
                     '_serialize' => ['result']
                 ]);
             }
+
+            $this->set([
+                'result' => $this->WPConnection->verifyPaypalPayment(),
+                '_serialize' => ['result']
+            ]);
+        } else {
+            $this->set([
+                'result' => 'Method not supported',
+                '_serialize' => ['result']
+            ]);
         }
     }
 

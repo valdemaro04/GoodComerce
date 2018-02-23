@@ -166,7 +166,7 @@ class WPConnectionComponent extends Component
         ])->first();
 
  
-        $response->customer = $this->getCustomer($customer->customer);
+        $response->customer = $this->getCustomer($response->id);
         
         return $response;
         
@@ -207,8 +207,8 @@ class WPConnectionComponent extends Component
             return false;
         }
 
-        if (!$this->requestData('apikey')) return false;
-
+        if (!$this->requestData('apikey') || !$this->requestData('payment_method')) return false;
+    
         $response = $this->WooClient->post('orders', $order);
 
         return $response;
@@ -254,7 +254,7 @@ class WPConnectionComponent extends Component
         $customer->customer = $response->id;
 
         $customer->apikey = $this->requestData('apikey');
-        
+
         $customer = $this->CustomersModel->save($customer);
 
         return ['customer' => $customer, 'response' => $response];
@@ -306,29 +306,43 @@ class WPConnectionComponent extends Component
 
     public function verifyPaypalPayment() {
         if (property_exists($this, "invalid_request")) {
-            return false;
+            return [false, 'INVALID_REQUEST_NO_API_KEY'];
         }
 
-        if (!$this->requestData('apikey') || !$this->requestData('paypal_email') || !$this->requestData('order_id') || $this->requestData('total')) return false;
+        if (!$this->requestData('apikey') || !$this->requestData('paypal_email') || !$this->requestData('order_id') || !$this->requestData('total')) return [false, 'INVALID', ['paypal_email', 'order_id', 'total'], [$this->requestData('paypal_email'), $this->requestData('order_id'), $this->requestData('total')]];
 
         $order = $this->getOrder($this->requestData('order_id'));
 
         if ($order) {
-            $payment = $this->PaymentsModel->find('all', [
-                'conditions' => [
-                    'payer_email' => $this->requestData('paypal_email'),
-                    'total' => $this->requestData('total'),
-                    'receiver_email' => $this->PaymentData['paypal']['ReceiverEmail']
-                ]
-            ])->first();
 
-            if ($payment) {
-                $total = $payment->total;
-                $this->PaymentsModel->delete($payment);
-                return $total;
+            if ($order->total == $this->requestData('total')) {
+                $payment = $this->PaymentsModel->find('all', [
+                    'conditions' => [
+                        'payer_email' => $this->requestData('paypal_email'),
+                        'total' => $this->requestData('total'),
+                        'receiver_email' => $this->PaymentData['paypal']['ReceiverEmail']
+                    ]
+                ])->first();
+    
+                if ($payment) {
+                    $total = $payment->total;
+                    $this->PaymentsModel->delete($payment);
+    
+                    $completed = $this->WooClient->put("orders/".$order->id, [
+                        'status' => 'completed'
+                    ]);
+    
+                    return $completed;
+                } else {
+                    return false;
+                }
             } else {
                 return false;
             }
+            
+            return [$payment, $this->PaymentData];
+        } else {
+            return [false, 'NOORDER'];
         }
 
     }
