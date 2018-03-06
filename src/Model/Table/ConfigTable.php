@@ -37,6 +37,10 @@ class ConfigTable extends Table
         $this->setDisplayField('id');
         $this->setPrimaryKey('id');
 
+        $this->belongsTo('PaypalClients', [
+            'foreignKey' => 'paypal_client_id',
+            'joinType' => 'INNER'
+        ]);
         $this->belongsTo('Users', [
             'foreignKey' => 'user_id',
             'joinType' => 'INNER'
@@ -77,6 +81,11 @@ class ConfigTable extends Table
             ->notEmpty('appname');
 
         $validator
+            ->scalar('currency')
+            ->requirePresence('currency', 'create')
+            ->notEmpty('currency');
+
+        $validator
             ->scalar('paypal_secret')
             ->requirePresence('paypal_secret', 'create')
             ->notEmpty('paypal_secret');
@@ -85,6 +94,41 @@ class ConfigTable extends Table
             ->scalar('paypal_email')
             ->requirePresence('paypal_email', 'create')
             ->notEmpty('paypal_email');
+
+        $validator
+            ->scalar('stripe_secret_key')
+            ->requirePresence('stripe_secret_key', 'create')
+            ->notEmpty('stripe_secret_key');
+
+        $validator
+            ->scalar('stripe_public_key')
+            ->requirePresence('stripe_public_key', 'create')
+            ->notEmpty('stripe_public_key');
+
+        $validator
+            ->scalar('styling')
+            ->requirePresence('styling', 'create')
+            ->notEmpty('styling');
+
+        $validator
+            ->integer('paypal_enabled')
+            ->requirePresence('paypal_enabled', 'create')
+            ->notEmpty('paypal_enabled');
+
+        $validator
+            ->integer('stripe_enabled')
+            ->requirePresence('stripe_enabled', 'create')
+            ->notEmpty('stripe_enabled');
+
+        $validator
+            ->integer('registration_allowed')
+            ->requirePresence('registration_allowed', 'create')
+            ->notEmpty('registration_allowed');
+
+        $validator
+            ->integer('registration_needed')
+            ->requirePresence('registration_needed', 'create')
+            ->notEmpty('registration_needed');
 
         return $validator;
     }

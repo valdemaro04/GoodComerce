@@ -10,6 +10,8 @@ use Cake\ORM\Entity;
  * @property string $payer_email
  * @property string $receiver_email
  * @property string $total
+ * @property string $currency
+ * @property int $verified
  */
 class Payment extends Entity
 {
@@ -26,6 +28,8 @@ class Payment extends Entity
     protected $_accessible = [
         'payer_email' => true,
         'receiver_email' => true,
-        'total' => true
+        'total' => true,
+        'currency' => true,
+        'verified' => true
     ];
 }

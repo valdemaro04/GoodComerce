@@ -87,7 +87,7 @@ class ApiController extends AppController
                 ]);
             } else {
                 $this->set([
-                    'result' => 'Not id',
+                    'result' => $products,
                     '_serialize' => ['result']
                 ]);
             }
@@ -221,14 +221,34 @@ class ApiController extends AppController
                $n->payer_email = $verified['payer_email'];
                $n->receiver_email = $verified['receiver_email'];
                $n->total = $verified['mc_gross'];
-               $this->Payments->save($n);
-               $this->set([
-                'ipn' => $verified,
-                '_serialize' => ['ipn']
-                ]);
+               $n->currency = $verified['mc_currency'];
+               $n->verified = 0;
+               if ($n->currency) {
+                if ($this->Payments->save($n)) {
+                    $this->set([
+                        'ipn' => $verified,
+                        '_serialize' => ['ipn']
+                        ]);
+                   } else {
+                       $this->set([
+                           'ipn' => "NOT_VERIFIED_CORRECTLY",
+                           '_serialize' => ['ipn']
+                       ]);
+                   }
+               } else {
+                   $this->set([
+                        'ipn' => "NO_CURRENCY",
+                        "debug" => $this->WPConnection->appdata(),
+                        '_serialize' => ['ipn', 'debug']
+                   ]);
+               }
+               
+               
+               
+               
             } else {
                 $this->set([
-                    'ipn' => "SPOOFED_IPN",
+                    'ipn' => "SPOOFED_IPN;URE_NOT_IPN",
                     '_serialize' => ['ipn']
                     ]);
             }
@@ -244,20 +264,9 @@ class ApiController extends AppController
 
     public function verifypaypal() {
         if ($this->request->is('post')) {
-            if($k = $this->WPConnection->verifyPaypalPayment()) {
-                $this->set([
-                    'result' => [$k, true],
-                    '_serialize' => ['result']
-                ]);
-            } else {
-                $this->set([
-                    'result' => [false, 'FALSE', $this->request->getData()],
-                    '_serialize' => ['result']
-                ]);
-            }
-
+            $k = $this->WPConnection->verifyPaypalPayment();
             $this->set([
-                'result' => $this->WPConnection->verifyPaypalPayment(),
+                'result' => $k,
                 '_serialize' => ['result']
             ]);
         } else {
@@ -268,9 +277,32 @@ class ApiController extends AppController
         }
     }
 
+    public function stripepayment() {
+        if ($this->request->is('post')) {
+            if ($k = $this->WPConnection->processStripePayment()) {
+                if ($k) {
+                    $this->set([
+                        'result' => $k,
+                        "_serialize" => 'result'
+                    ]);
+                } else {
+                    $this->set([
+                        'result' => $k,
+                        "_serialize" => 'result'
+                    ]);
+                }
+            } else {
+                $this->set([
+                    'result' => $k,
+                    "_serialize" => 'result'
+                ]);
+            }
+        }
+    }
+
     public function beforeFilter(Event $event) {
         parent::beforeFilter($event);
-        $this->Auth->allow(['verifypaypal', 'ipn','authorize', 'products', 'sendorder', 'paymentgateways', 'register', 'updatecustomer', 'appdata']);
+        $this->Auth->allow(['stripepayment','verifypaypal', 'ipn','authorize', 'products', 'sendorder', 'paymentgateways', 'register', 'updatecustomer', 'appdata']);
     }
 
 

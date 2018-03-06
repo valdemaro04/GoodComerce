@@ -62,6 +62,16 @@ class PaymentsTable extends Table
             ->requirePresence('total', 'create')
             ->notEmpty('total');
 
+        $validator
+            ->scalar('currency')
+            ->requirePresence('currency', 'create')
+            ->notEmpty('currency');
+
+        $validator
+            ->integer('verified')
+            ->requirePresence('verified', 'create')
+            ->notEmpty('verified');
+
         return $validator;
     }
 }

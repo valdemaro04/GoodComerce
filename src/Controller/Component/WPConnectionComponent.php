@@ -83,6 +83,10 @@ class WPConnectionComponent extends Component
                             'ClientID' => $this->Config->paypal_client_id,
                             'ClientSecret' => $this->Config->paypal_secret,
                             'ReceiverEmail' => $this->Config->paypal_email
+                        ],
+                        'stripe' => [
+                            'SecretKey' => $this->Config->stripe_secret_key,
+                            'PublicKey' => $this->Config->stripe_public_key
                         ]
                     ];
 
@@ -106,7 +110,9 @@ class WPConnectionComponent extends Component
 
                 $this->WooConfig = [
                     'appname' => $this->Config->appname,
-                    'paypal_client_id' => $this->PaymentData['paypal']['ClientID']
+                    'paypal_client_id' => $this->PaymentData['paypal']['ClientID'],
+                    'stripe_public_key' => $this->PaymentData['stripe']['PublicKey'],
+                    'currency' => $this->Config->currency
                 ];
                 
             } else {
@@ -183,6 +189,19 @@ class WPConnectionComponent extends Component
         if (!$this->requestData('apikey')) return false;
 
 
+        $params = $this->requestData('params');
+
+        if ($params) {
+            
+
+            if (array_key_exists("category", $params)) {
+                if (!empty($params['category'])) {
+                    return $this->WooClient->get("products", ['category' => $params['category']]);
+                }
+            }
+            
+        }
+
         $response = $this->WooClient->get("products");
 
         
@@ -214,6 +233,10 @@ class WPConnectionComponent extends Component
         return $response;
     }
 
+    public function getCurrency() {
+        return $this->WooConfig['currency'];
+    }
+
     public function getOrder($id) {
         if (property_exists($this, "invalid_request")) {
             return false;
@@ -233,7 +256,7 @@ class WPConnectionComponent extends Component
 
         if (!$this->requestData('apikey')) return false;
 
-        $response = $this->WooClient->post('products/categories');
+        $response = $this->WooClient->get('products/categories');
 
         return $response;
     }
@@ -279,8 +302,10 @@ class WPConnectionComponent extends Component
         }
 
         if (!$this->requestData('apikey')) return false;
+        $config = $this->WooConfig;
 
-        return $this->WooConfig;
+        $config['categories'] = $this->getCategories();
+        return $config;
 
     }
 
@@ -309,35 +334,40 @@ class WPConnectionComponent extends Component
             return [false, 'INVALID_REQUEST_NO_API_KEY'];
         }
 
-        if (!$this->requestData('apikey') || !$this->requestData('paypal_email') || !$this->requestData('order_id') || !$this->requestData('total')) return [false, 'INVALID', ['paypal_email', 'order_id', 'total'], [$this->requestData('paypal_email'), $this->requestData('order_id'), $this->requestData('total')]];
+        if (!$this->requestData('apikey') || !$this->requestData('paypal_email') || !$this->requestData('order_id') || !$this->requestData('total') || !$this->requestData('currency')) return [false, 'INVALID', ['paypal_email', 'order_id', 'total'], [$this->requestData('paypal_email'), $this->requestData('order_id'), $this->requestData('total')]];
 
         $order = $this->getOrder($this->requestData('order_id'));
 
         if ($order) {
-
+            if ($order->status == 'completed') {
+                return [true, 'completed'];
+            }
             if ($order->total == $this->requestData('total')) {
                 $payment = $this->PaymentsModel->find('all', [
                     'conditions' => [
                         'payer_email' => $this->requestData('paypal_email'),
                         'total' => $this->requestData('total'),
-                        'receiver_email' => $this->PaymentData['paypal']['ReceiverEmail']
+                        'receiver_email' => $this->PaymentData['paypal']['ReceiverEmail'],
+                        'currency' => strtolower($this->requestData('currency')),
+                        'verified' => 0
                     ]
                 ])->first();
     
                 if ($payment) {
                     $total = $payment->total;
-                    $this->PaymentsModel->delete($payment);
-    
+                    $payment->verified = 1;
+                    $this->PaymentsModel->save($payment);
                     $completed = $this->WooClient->put("orders/".$order->id, [
                         'status' => 'completed'
                     ]);
-    
-                    return $completed;
+
+                    return [true, $completed];
+
                 } else {
-                    return false;
+                    return [false, 'NOPAYMENT'];
                 }
             } else {
-                return false;
+                return [false, 'DIFFERENT_TOTAL'];
             }
             
             return [$payment, $this->PaymentData];
@@ -345,6 +375,42 @@ class WPConnectionComponent extends Component
             return [false, 'NOORDER'];
         }
 
+    }
+
+    public function processStripePayment() {
+        if (property_exists($this, "invalid_request")) {
+            return [false, 'INVALID_REQUEST_NO_API_KEY'];
+        }
+
+        if (!$this->requestData('apikey') || !$this->requestData('token') || !$this->requestData('order_id')) return [false, 'ERR_NO_VALID_DATA'];
+        \Stripe\Stripe::setApiKey($this->PaymentData['stripe']['SecretKey']);
+
+        $order = $this->getOrder($this->requestData('order_id'));
+        if ($order) {
+            try {
+                $charge = \Stripe\Charge::create([
+                    'amount' => (float) ($order->total * 100), 
+                    'currency' => 'usd', 
+                    'source' => $this->requestData('token')['id']
+                    ]);
+    
+                if ($charge) {
+                    $data = [
+                        'status' => 'completed',
+                    ];
+    
+                    $req = $this->WooClient->put("orders/".$this->requestData('order_id'), $data);
+                    return true;
+                }
+            } catch(\Stripe\Error\Card $e) {
+                return [$e->getJsonBody(), $order->total];
+            }
+        } else {
+            return [false, 'NO_ORDER'];
+        }
+
+        
+        
     }
 
 }
